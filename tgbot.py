@@ -44,7 +44,12 @@ def status(message: types.Message) -> None:
 
 # * functions
 
-# # * tgbot
+# # * tgbot posibilities
+
+
+
+
+# # * tgbot management
 def run_tgbot() -> None:
     global bot, running
     
