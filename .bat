@@ -14,3 +14,4 @@ echo Docker : DOING
 docker build . -t shauru1118/tgbot-py
 docker push shauru1118/tgbot-py
 echo Docker : DONE
+echo ================
