@@ -56,6 +56,7 @@ def run_tgbot() -> None:
     running = True
     
     try:
+        bot.remove_webhook()
         bot.polling(non_stop=True)
     except Exception as e:
         print("Бот не запущен:", e)
