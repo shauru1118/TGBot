@@ -17,4 +17,4 @@ COPY new_tgbot.py .
 # use venv python by default
 ENV PATH="/venv/bin:$PATH"
 
-CMD ["python", "tgbot.py"]
+CMD ["python3", "new_tgbot.py"]

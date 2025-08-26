@@ -3,11 +3,11 @@
 IF "%1" EQU "docker" (
     echo ================
     echo Docker : DOING
-    docker build . -t shauru1118/tgbot-py
+    docker build . -t shauru1118/new-tgbot
     echo =
     echo Docker : build DONE
     echo =
-    docker push shauru1118/tgbot-py
+    docker push shauru1118/new-tgbot
     echo =
     echo Docker : push DONE
     echo =
@@ -53,11 +53,11 @@ IF "%1" EQU "all" (
 
     echo ================
     echo Docker : DOING
-    docker build . -t shauru1118/tgbot-py
+    docker build . -t shauru1118/new-tgbot
     echo =
     echo Docker : build DONE
     echo =
-    docker push shauru1118/tgbot-py
+    docker push shauru1118/new-tgbot
     echo =
     echo Docker : push DONE
     echo =
