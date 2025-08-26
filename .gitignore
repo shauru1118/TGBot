@@ -1,9 +1,0 @@
-__pycache__
-.venv
-logs
-videos
-.env
-.gitignore
-Dockerfile
-test.py
-tgbot.py
