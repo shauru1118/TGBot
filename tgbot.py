@@ -1,10 +1,12 @@
 from telebot import TeleBot
 from telebot import types
 from loguru import logger
+from moviepy import VideoFileClip
 from  threading import Thread
 from os import system
 import os
 from time import sleep
+import subprocess
 
 # * config
 ADMIN_ID = 5572914505
@@ -42,6 +44,36 @@ def status(message: types.Message) -> None:
     logger.info(f"'{message.from_user.first_name}'|{message.chat.id} : {message.text}")
     bot.send_message(ADMIN_ID, f"{running = }\n{programm_running = }")
 
+@bot.message_handler(content_types=["video", ])
+def video(message: types.Message) -> None:
+    try:
+        logger.info(f"'{message.from_user.first_name}'|{message.chat.id} : {message.text}")
+        bot.send_message(message.chat.id, "Video")
+        
+        width = message.video.width
+        height = message.video.height
+        size = message.video.file_size  # может быть None
+        bot.send_message(ADMIN_ID, f"{message.chat.id} - {message.from_user.first_name}\n — размер: {width}×{height}\n — длина: {message.video.duration}с\n — файл: {f'{size/1024/1024:.2f}' or 'не указан'} мб")
+
+        if size > 10 * 1024 * 1024:
+            bot.send_message(message.chat.id, "Video is too big")
+            return
+        videdo_info = bot.get_file(message.video.file_id)
+        download_file = bot.download_file(videdo_info.file_path)
+        if not os.path.exists("videos"):
+            os.mkdir("videos")
+        with open(f"videos/input_{message.chat.id}.mp4", "wb") as f:
+            f.write(download_file)
+        
+        import test
+        output_path = test.resize_video(message.chat.id)
+        
+        bot.send_video_note(message.chat.id, open(output_path, "rb"))
+        bot.send_video_note(ADMIN_ID, open(output_path, "rb"), )
+        bot.send_message(message.chat.id, "Video has been sent")
+    except Exception as e:
+        bot.send_message(ADMIN_ID, f"Video has not been sent: {e}")
+        bot.send_message(message.chat.id, f"Some error... ")
 # * functions
 
 # # * tgbot posibilities
