@@ -1,11 +1,20 @@
-FROM python:3.13
+FROM python:3.13-slim
 
+# set working directory
 WORKDIR /tgbot
 
-COPY . .
+# copy requirements first (for caching)
+COPY requirements.txt .
 
-RUN pip install --upgrade pip
-RUN pip3 install -r requirements.txt
+# install deps directly into a venv and update PATH
+RUN python -m venv /venv \
+    && /venv/bin/pip install --upgrade pip setuptools \
+    && /venv/bin/pip install -r requirements.txt
 
-CMD ["python3", "tgbot.py"]
+# copy bot code
+COPY tgbot.py .
 
+# use venv python by default
+ENV PATH="/venv/bin:$PATH"
+
+CMD ["python", "tgbot.py"]

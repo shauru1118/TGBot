@@ -160,6 +160,12 @@ COMAND_DICT : dict[str, (str, callable)] = {
 # * main
 
 if __name__ == "__main__":
+    
+    if os.path.exists("logs"):
+        pass
+    else:
+        os.mkdir("logs")
+    
     clear()
     sleep(2)
     logger.info("Start programm")
