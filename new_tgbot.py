@@ -42,6 +42,8 @@ def main():
     ADMIN = int(str(os.getenv("ADMIN")))
     
     # ! logger
+    if not os.path.exists("logs"):
+        os.mkdir("logs")
     logger.add(f"logs/tgbot_{strftime('%d-%m-%Y')}.log", format="{time} | {level} | {message}", level="INFO", rotation="00:00")
     # logger.remove(0)
 

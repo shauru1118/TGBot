@@ -13,6 +13,7 @@ RUN python -m venv /venv \
 
 # copy bot code
 COPY new_tgbot.py .
+COPY .env .
 
 # use venv python by default
 ENV PATH="/venv/bin:$PATH"
