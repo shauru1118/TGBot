@@ -70,6 +70,12 @@ def main():
         admin_bot.running = False
         admin_bot.stop()
         return
+    
+    # todo /status and /logs
+    
+    # !* logs - f"logs/tgbot_{strftime('%d-%m-%Y')}.log"
+    
+    # !* status - hz poka chto
 
     
     # * run
