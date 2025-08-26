@@ -39,7 +39,7 @@ def main():
     load_dotenv()
 
     TOKEN = str(os.getenv("TOKEN"))
-    ADMIN = int(os.getenv("ADMIN"))
+    ADMIN = int(str(os.getenv("ADMIN")))
     
     # ! logger
     logger.add(f"logs/tgbot_{strftime('%d-%m-%Y')}.log", format="{time} | {level} | {message}", level="INFO", rotation="00:00")
