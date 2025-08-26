@@ -12,8 +12,7 @@ RUN python -m venv /venv \
     && /venv/bin/pip install -r requirements.txt
 
 # copy bot code
-COPY tgbot.py .
-COPY test.py .
+COPY new_tgbot.py .
 
 # use venv python by default
 ENV PATH="/venv/bin:$PATH"

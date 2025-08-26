@@ -48,7 +48,7 @@ def status(message: types.Message) -> None:
 def video(message: types.Message) -> None:
     try:
         logger.info(f"'{message.from_user.first_name}'|{message.chat.id} : {message.text}")
-        bot.send_message(message.chat.id, "Video")
+        bot.send_message(message.chat.id, "Превращаю видео в кружок...")
         
         width = message.video.width
         height = message.video.height
@@ -56,7 +56,7 @@ def video(message: types.Message) -> None:
         bot.send_message(ADMIN_ID, f"{message.chat.id} - {message.from_user.first_name}\n — размер: {width}×{height}\n — длина: {message.video.duration}с\n — файл: {f'{size/1024/1024:.2f}' or 'не указан'} мб")
 
         if size > 10 * 1024 * 1024:
-            bot.send_message(message.chat.id, "Video is too big")
+            bot.send_message(message.chat.id, "Слишком большой размер видео :()")
             return
         videdo_info = bot.get_file(message.video.file_id)
         download_file = bot.download_file(videdo_info.file_path)
