@@ -29,8 +29,19 @@ class TGBot():
         return
     
     def __str__(self) -> str:
-        return f"bot running: {self.running}"
+        bot_discription = self.bot.get_me().to_json().replace("{", "{\n ").replace("}", "\n}").replace(",", ",\n")
+        return bot_discription
 
+
+class utils:
+    @classmethod
+    def today(cls) -> str:
+        return strftime("%d-%m-%Y")
+    
+    @classmethod
+    def log(cls, message : types.Message) -> str:
+        return f"'{message.from_user.first_name}'|{message.chat.id} : {message.text}"
+        
 
 # ! main
 
@@ -44,7 +55,7 @@ def main():
     # ! logger
     if not os.path.exists("logs"):
         os.mkdir("logs")
-    logger.add(f"logs/tgbot_{strftime('%d-%m-%Y')}.log", format="{time} | {level} | {message}", level="INFO", rotation="00:00")
+    logger.add(f"logs/tgbot_{utils.today()}.log", level="INFO", rotation="00:00")
     # logger.remove(0)
 
     # ! telegram BOT
@@ -56,7 +67,7 @@ def main():
     @admin_bot.bot.message_handler(commands=["start", ])
     def start(message: types.Message) -> None:
         
-        logger.info(f"'{message.from_user.first_name}'|{message.chat.id} : {message.text}")
+        logger.info(utils.log(message))
         admin_bot.bot.send_message(message.chat.id, "Привет! Я бот для чего-то. Пока просто разработка :)")
         return
 
@@ -64,20 +75,32 @@ def main():
     @admin_bot.bot.message_handler(commands=["q", ])
     def q(message: types.Message) -> None:
         
-        logger.info(f"'{message.from_user.first_name}'|{message.chat.id} : {message.text}")
+        logger.info(utils.log(message))
         admin_bot.bot.send_message(ADMIN, "I'm offline - by telegram")
         logger.info("I'm offline - by telegram\n\n")
         admin_bot.running = False
         admin_bot.stop()
         return
     
-    # todo /status and /logs
+    # !* logs
+    @admin_bot.bot.message_handler(commands=["logs", ])
+    def logs(message : types.Message) -> None:
+        
+        logger.info(utils.log(message))
+        with open(f"logs/tgbot_{utils.today()}.log", "r") as f:
+            logs_text = f.read()
+        text_to_send = "```log\n" + logs_text + "\n```"
+        admin_bot.bot.send_message(ADMIN, text_to_send, parse_mode="MarkdownV2")
+        return
     
-    # !* logs - f"logs/tgbot_{strftime('%d-%m-%Y')}.log"
-    
-    # !* status - hz poka chto
+    # !* status
+    @admin_bot.bot.message_handler(commands=["status", ])
+    def status(message : types.Message) -> None:
+        
+        logger.info(utils.log(message))
+        admin_bot.bot.send_message(ADMIN, "```json\n"+str(admin_bot)+"\n```", parse_mode="MarkdownV2")
+        return
 
-    
     # * run
     admin_bot.start()
     
