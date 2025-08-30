@@ -65,12 +65,12 @@ class utils:
         for key, value in valutes.items():
             exchange_rate = exchange_rate + f"1 {key} : {value} руб.\n"
         
-        for id in set:
+        for id in users:
             bot_.bot.send_message(id, exchange_rate)
 
     @classmethod
     def scheduler(cls, bot_, users: set):
-        schedule.every().day.at("08:00").do(cls.send_message, bot_, users)
+        schedule.every().day.at("08:00").do(cls.send_message, bot_=bot_, users=users)
         while True:
             schedule.run_pending()
             sleep(1)
@@ -148,7 +148,7 @@ def main():
         admin_bot.bot.send_message(message.chat.id, exchange_rate)
         return
     
-    users = [ADMIN, ]
+    users = set([ADMIN, ])
 
     threading.Thread(target=utils.scheduler, daemon=True, kwargs={"bot_" : admin_bot, "users" : users}).start()
 
