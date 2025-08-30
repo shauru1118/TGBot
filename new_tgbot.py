@@ -1,8 +1,11 @@
 from telebot import TeleBot, types
 from dotenv import load_dotenv
 from loguru import logger
-from time import strftime
+from time import strftime, sleep
 import os
+import requests
+import schedule
+import threading
 
 # ! tgbot class
 
@@ -42,7 +45,38 @@ class utils:
     def log(cls, message : types.Message) -> str:
         return f"'{message.from_user.first_name}'|{message.chat.id} : {message.text}"
         
+    @classmethod
+    def get_rates(cls) -> dict:
+        url = "https://www.cbr-xml-daily.ru/daily_json.js"
+        data = requests.get(url).json()["Valute"]
 
+        rates = {
+            "USD": f'{data["USD"]["Value"]:.2f}',
+            "EUR": f'{data["EUR"]["Value"]:.2f}',
+            "CNY": f'{data["CNY"]["Value"]:.2f}',
+            "JPY": f'{data["JPY"]["Value"]/100:.2f}' ,  # у ЦБ курс за 100 иен
+        }
+        return rates
+
+    @classmethod
+    def send_message(cls, bot_, users: set) -> None:
+        exchange_rate = ""
+        valutes = cls.get_rates()
+        for key, value in valutes.items():
+            exchange_rate = exchange_rate + f"1 {key} : {value} руб.\n"
+        
+        for id in set:
+            bot_.bot.send_message(id, exchange_rate)
+
+    @classmethod
+    def scheduler(cls, bot_, users: set):
+        schedule.every().day.at("08:00").do(cls.send_message, bot_, users)
+        while True:
+            schedule.run_pending()
+            sleep(1)
+
+
+    
 # ! main
 
 def main():
@@ -100,6 +134,23 @@ def main():
         logger.info(utils.log(message))
         admin_bot.bot.send_message(ADMIN, "```json\n"+str(admin_bot)+"\n```", parse_mode="MarkdownV2")
         return
+    
+    # !* exchange rate
+    @admin_bot.bot.message_handler(commands=["exchange_rate", ])
+    def exchange_rate(message : types.Message) -> None:
+        
+        logger.info(utils.log(message))
+        exchange_rate = ""
+        valutes = utils.get_rates()
+        for key, value in valutes.items():
+            exchange_rate = exchange_rate + f"1 {key} : {value} руб.\n"
+        
+        admin_bot.bot.send_message(message.chat.id, exchange_rate)
+        return
+    
+    users = [ADMIN, ]
+
+    threading.Thread(target=utils.scheduler, daemon=True, kwargs={"bot_" : admin_bot, "users" : users}).start()
 
     # * run
     admin_bot.start()
