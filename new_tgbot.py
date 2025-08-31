@@ -7,6 +7,8 @@ import requests
 import schedule
 import threading
 
+TIME_TO_SEND = "05:00"
+
 # ! tgbot class
 
 class TGBot():
@@ -70,7 +72,7 @@ class utils:
 
     @classmethod
     def scheduler(cls, bot_, users: set):
-        schedule.every().day.at("08:00").do(cls.send_message, bot_=bot_, users=users)
+        schedule.every().day.at(TIME_TO_SEND).do(cls.send_message, bot_=bot_, users=users)
         while True:
             schedule.run_pending()
             sleep(1)
