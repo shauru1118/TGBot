@@ -148,7 +148,7 @@ def main():
         admin_bot.bot.send_message(message.chat.id, exchange_rate)
         return
     
-    users = set([ADMIN, ])
+    users = set([ADMIN, 5207969556, 1301873508, -1002773279927])
 
     threading.Thread(target=utils.scheduler, daemon=True, kwargs={"bot_" : admin_bot, "users" : users}).start()
 
