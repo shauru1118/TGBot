@@ -53,10 +53,10 @@ class utils:
         data = requests.get(url).json()["Valute"]
 
         rates = {
-            "USD": f'{data["USD"]["Value"]:.2f}',
-            "EUR": f'{data["EUR"]["Value"]:.2f}',
-            "CNY": f'{data["CNY"]["Value"]:.2f}',
-            "JPY": f'{data["JPY"]["Value"]/100:.2f}' ,  # у ЦБ курс за 100 иен
+            "USD": f'{data["USD"]["Value"]:.5f}',
+            "EUR": f'{data["EUR"]["Value"]:.5f}',
+            "CNY": f'{data["CNY"]["Value"]:.5f}',
+            "JPY": f'{data["JPY"]["Value"]/100:.5f}' ,  # у ЦБ курс за 100 иен
         }
         return rates
 
