@@ -49,6 +49,7 @@ class utils:
         
     @classmethod
     def get_rates(cls) -> dict:
+        
         url = "https://www.cbr-xml-daily.ru/daily_json.js"
         data = requests.get(url).json()["Valute"]
 
@@ -91,7 +92,7 @@ def main():
     # ! logger
     if not os.path.exists("logs"):
         os.mkdir("logs")
-    logger.add(f"logs/tgbot_{utils.today()}.log", level="INFO", rotation="00:00")
+    logger.add(f"logs/tgbot.log", level="INFO", rotation="00:00")
     # logger.remove(0)
 
     # ! telegram BOT
@@ -123,7 +124,7 @@ def main():
     def logs(message : types.Message) -> None:
         
         logger.info(utils.log(message))
-        with open(f"logs/tgbot_{utils.today()}.log", "r") as f:
+        with open(f"logs/tgbot.log", "r") as f:
             logs_text = f.read()
         text_to_send = "```log\n" + logs_text + "\n```"
         admin_bot.bot.send_message(ADMIN, text_to_send, parse_mode="MarkdownV2")
