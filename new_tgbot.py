@@ -6,6 +6,7 @@ import os
 import requests
 import schedule
 import threading
+import html
 
 TIME_TO_SEND = "05:00"
 
@@ -52,13 +53,9 @@ class utils:
         
         url = "https://www.cbr-xml-daily.ru/daily_json.js"
         data = requests.get(url).json()["Valute"]
-
-        rates = {
-            "USD": f'{data["USD"]["Value"]:.5f}',
-            "EUR": f'{data["EUR"]["Value"]:.5f}',
-            "CNY": f'{data["CNY"]["Value"]:.5f}',
-            "JPY": f'{data["JPY"]["Value"]/100:.5f}' ,  # у ЦБ курс за 100 иен
-        }
+        rates = {}
+        for key, value in data.items():
+            rates[key] = f'{value["Name"]} : {value["Value"]:.5f} руб. << {value["Previous"]:.5f}'
         return rates
 
     @classmethod
@@ -66,11 +63,14 @@ class utils:
         exchange_rate = ""
         valutes = cls.get_rates()
         for key, value in valutes.items():
-            exchange_rate = exchange_rate + f"1 {key} : {value} руб.\n"
+            exchange_rate = exchange_rate + f"{key}. {value}\n"
         
         for id in users:
-            bot_.bot.send_message(id, exchange_rate)
-
+            try:
+                bot_.bot.send_message(id, exchange_rate)
+            except Exception as e:
+                logger.error(f"ERROR: {e}")
+                
     @classmethod
     def scheduler(cls, bot_, users: set):
         schedule.every().day.at(TIME_TO_SEND).do(cls.send_message, bot_=bot_, users=users)
@@ -146,9 +146,9 @@ def main():
         exchange_rate = ""
         valutes = utils.get_rates()
         for key, value in valutes.items():
-            exchange_rate = exchange_rate + f"1 {key} : {value} руб.\n"
-        
-        admin_bot.bot.send_message(message.chat.id, exchange_rate)
+            exchange_rate = exchange_rate + f"{key}. {value}\n"
+        exchange_rate = "<blockquote>" + html.escape(exchange_rate) + "</blockquote>"
+        admin_bot.bot.send_message(message.chat.id, exchange_rate, parse_mode="HTML")
         return
     
     users = set([ADMIN, 5207969556, 1301873508, -1002773279927])
