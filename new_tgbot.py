@@ -1,13 +1,13 @@
 from telebot import types
 from loguru import logger
 import os, sys
-import tgbot
 from tgbot.tgbot import TgBot
+from dotenv import load_dotenv
 
-TOKEN = "7420625782:AAGkULTg5EgP1cFHZ0zT6zzj-pTwhxtPl-s"
-MAIN_ADMIN = 5572914505
-ADMINS = [5572914505, ]
-FORMAT_TO_LOGS = "{time}|{name} : <lvl>{message}</lvl>"
+load_dotenv()
+TOKEN = str(os.getenv("TOKEN"))
+MAIN_ADMIN = int(str(os.getenv("ADMIN")))
+ADMINS = [MAIN_ADMIN, ]
 LOGGER_FILE = "logs/tgbot.log"
 STOPPED_MESSAGE: types.Message | None = None
 
@@ -45,6 +45,8 @@ def main(args : list):
 
     @bot.message_handler(content_types=["text"])
     def echo(message: types.Message):
+        if message.chat.id < 0:
+            return
         bot.send_message(message.chat.id, "wtf?")
 
     global STOPPED_MESSAGE
