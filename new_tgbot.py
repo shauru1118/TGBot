@@ -1,7 +1,7 @@
 from telebot import types
 from loguru import logger
 import os, sys
-from tgbot import Tg
+from tgbot import TgBot
 from dotenv import load_dotenv
 
 load_dotenv()
