@@ -1,8 +1,13 @@
+import json
+
+from numpy.f2py.crackfortran import namepattern
 from telebot import types
 from loguru import logger
 import os, sys
 from tgbot import TgBot
 from dotenv import load_dotenv
+import requests
+
 
 load_dotenv()
 TOKEN = str(os.getenv("TOKEN"))
@@ -42,6 +47,17 @@ def main(args : list):
         global STOPPED_MESSAGE
         STOPPED_MESSAGE = message
         bot.stop_polling()
+
+    @bot.message_handler(commands=["get_users"])
+    def get_users(message : types.Message):
+        res = requests.get("https://shauru.pythonanywhere.com/get")
+        bot.send_message(bot.main_admin, f"```json\n{json.dumps(res.json(), indent=2)}\n```", parse_mode="MarkdownV2")
+
+    @bot.message_handler(commands=["add_user"])
+    def add_user(message : types.Message):
+        name, prof = message.text.split(" ")[1:]
+        res = requests.post(f"https://shauru.pythonanywhere.com/add?name={name}&prof={prof}")
+        bot.send_message(bot.main_admin, f"```json\n{json.dumps(res.json(), indent=2)}\n```", parse_mode="MarkdownV2")
 
     @bot.message_handler(content_types=["text"])
     def echo(message: types.Message):
