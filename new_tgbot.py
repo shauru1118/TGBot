@@ -48,6 +48,8 @@ def main(args : list):
 
     @bot.message_handler(commands=["get_users"])
     def get_users(message : types.Message):
+        if message.from_user.id != bot.main_admin:
+            bot.send_message(message.chat.id, "not allowed")
         res = requests.get("https://shauru.pythonanywhere.com/get")
         bot.send_message(bot.main_admin, f"```json\n{json.dumps(res.json(), indent=2)}\n```", parse_mode="MarkdownV2")
 
