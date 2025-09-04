@@ -1,12 +1,10 @@
-import json
-
-from numpy.f2py.crackfortran import namepattern
 from telebot import types
 from loguru import logger
 import os, sys
 from tgbot import TgBot
 from dotenv import load_dotenv
 import requests
+import json
 
 
 load_dotenv()
