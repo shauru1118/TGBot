@@ -88,7 +88,7 @@ def main(args : list):
             bot.send_message(message.chat.id, f"Ошибка :( \nУже чиним!", parse_mode="MarkdownV2")
             bot.send_message(bot.main_admin, f"Error : ```{res.status_code}```\n\n```{res.text}```\n\n```{res.json()}```", parse_mode="MarkdownV2")
             return
-        bot.send_message(message.chat.id, f"```json\n{json.dumps(res.json(), indent=2, ensure_ascii=False)}\n```")#, parse_mode="MarkdownV2")
+        bot.send_message(message.chat.id, f"\n{json.dumps(res.json(), indent=2, ensure_ascii=False)}\n")#, parse_mode="MarkdownV2")
 
     @bot.message_handler(commands=["add_user"])
     def add_user(message : types.Message):
