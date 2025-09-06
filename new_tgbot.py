@@ -16,7 +16,17 @@ STOPPED_MESSAGE: types.Message | None = None
 
 
 def greeting(name : str) -> str:
-    return f"Hello, {name}! I'm a bot for admin your groups. I have many useful commands and funcs."
+    return f"""
+Привет, {name}! Я бот с домашними заданиями. 
+Пора зарегистрироваться! Напиши своё имя и профиль ('физ' или 'инф'), например:
+
+Иван Иванов 
+физ
+
+Жду твои данные!
+
+"""
+
 
 def main(args : list):
     # start
@@ -37,7 +47,15 @@ def main(args : list):
     @bot.message_handler(commands=["start"])
     def start(message : types.Message):
         logger.warning(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
-        bot.send_message(message.chat.id, greeting(message.from_user.first_name))
+        msg = bot.send_message(message.chat.id, greeting(message.from_user.first_name))
+        bot.register_next_step_handler(msg, register_user)
+
+    def register_user(message : types.Message) -> None:
+        name, prof = message.text.split("\n")
+        res = requests.post(f"https://shauru.pythonanywhere.com/add?name={name}&prof={prof}")
+        logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
+        logger.info(f"new user: {name=}, {prof=}")
+        bot.send_message(message.chat.id, "Вы успешно зарегистрировались в боте!")
 
     @bot.message_handler(commands=["q"])
     def q(message: types.Message):
@@ -51,7 +69,7 @@ def main(args : list):
         if message.from_user.id != bot.main_admin:
             bot.send_message(message.chat.id, "not allowed")
         res = requests.get("https://shauru.pythonanywhere.com/get")
-        bot.send_message(message.chat.id, f"```json\n{json.dumps(res.json(), indent=2)}\n```", parse_mode="MarkdownV2")
+        bot.send_message(message.chat.id, f"```json\n{json.dumps(res.json(), indent=2, ensure_ascii=False)}\n```", parse_mode="MarkdownV2")
 
     @bot.message_handler(commands=["add_user"])
     def add_user(message : types.Message):
