@@ -77,7 +77,7 @@ def main(args : list):
             bot.send_message(message.chat.id, "not allowed")
         name, prof = message.text.split(" ")[1:]
         res = requests.post(f"https://shauru.pythonanywhere.com/add?name={name}&prof={prof}")
-        bot.send_message(message.chat.id, f"```json\n{json.dumps(res.json(), indent=2)}\n```", parse_mode="MarkdownV2")
+        bot.send_message(message.chat.id, f"```json\n{json.dumps(res.json(), indent=2, ensure_ascii=False)}\n```", parse_mode="MarkdownV2")
 
     @bot.message_handler(content_types=["text"])
     def echo(message: types.Message):
