@@ -13,10 +13,13 @@ MAIN_ADMIN = int(str(os.getenv("ADMIN")))
 ADMINS = [MAIN_ADMIN, ]
 LOGGER_FILE = "logs/tgbot.log"
 STOPPED_MESSAGE: types.Message | None = None
+PHIS_MATH = "phis"
+INFO_MATH = "inf"
 
 
 def greeting(name : str) -> str:
     return f"""
+
 Привет, {name}! Я бот с домашними заданиями. 
 Пора зарегистрироваться! Напиши своё имя и профиль ('физ' или 'инф'), например:
 
@@ -44,21 +47,32 @@ def main(args : list):
     bot = TgBot(TOKEN, MAIN_ADMIN, ADMINS)
     logger.success(f"new bot : TgBot - {bot=}")
 
+
     @bot.message_handler(commands=["start"])
     def start(message : types.Message):
-        logger.warning(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
+        logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         msg = bot.send_message(message.chat.id, greeting(message.from_user.first_name))
         bot.register_next_step_handler(msg, register_user)
 
     def register_user(message : types.Message) -> None:
-        name, prof = message.text.split("\n")
-        res = requests.post(f"https://shauru.pythonanywhere.com/add?name={name}&prof={prof}")
+        args = list(map(lambda x: x.lower(), message.text.split("\n")))
+        if len(args) != 2:
+            msg = bot.send_message(message.chat.id, "Ошибка! Напиши своё имя и профиль ещё раз.")
+            bot.register_next_step_handler(msg, register_user)
+            return
+        name, prof = args
+        if prof not in ["физ", "инф"] or not name:
+            msg = bot.send_message(message.chat.id, "Профиль должен быть 'физ' или 'инф'. Напиши своё имя и профиль ещё раз.")
+            bot.register_next_step_handler(msg, register_user)
+            return
+        requests.post(f"https://shauru.pythonanywhere.com/add", json={"id": message.from_user.id,"name": name, "prof": prof})
         logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         logger.info(f"new user: {name=}, {prof=}")
         bot.send_message(message.chat.id, "Вы успешно зарегистрировались в боте!")
 
     @bot.message_handler(commands=["q"])
     def q(message: types.Message):
+        logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         bot.send_message(bot.main_admin, "Bot : stop")
         global STOPPED_MESSAGE
         STOPPED_MESSAGE = message
@@ -66,6 +80,7 @@ def main(args : list):
 
     @bot.message_handler(commands=["get_users"])
     def get_users(message : types.Message):
+        logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         if message.from_user.id != bot.main_admin:
             bot.send_message(message.chat.id, "not allowed")
         res = requests.get("https://shauru.pythonanywhere.com/get")
@@ -73,6 +88,7 @@ def main(args : list):
 
     @bot.message_handler(commands=["add_user"])
     def add_user(message : types.Message):
+        logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         if message.from_user.id != bot.main_admin:
             bot.send_message(message.chat.id, "not allowed")
         name, prof = message.text.split(" ")[1:]
@@ -81,9 +97,7 @@ def main(args : list):
 
     @bot.message_handler(content_types=["text"])
     def echo(message: types.Message):
-        if message.chat.id < 0:
-            return
-        bot.send_message(message.chat.id, "wtf?")
+        logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
 
     global STOPPED_MESSAGE
 

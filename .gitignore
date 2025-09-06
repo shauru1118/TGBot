@@ -3,3 +3,4 @@ __pycache__
 logs
 .env
 test.py
+legacy_new_tgbot.py
