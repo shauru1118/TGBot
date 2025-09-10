@@ -1,6 +1,7 @@
 from telebot import types
 from loguru import logger
 import os, sys
+from time import sleep
 from tgbot import TgBot
 from dotenv import load_dotenv
 import requests
@@ -83,12 +84,13 @@ def main(args : list):
         logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         if message.from_user.id != bot.main_admin:
             bot.send_message(message.chat.id, "not allowed")
-        res = requests.get("https://shauru.pythonanywhere.com/get")
-        if res.status_code != 200:
-            bot.send_message(message.chat.id, f"Ошибка :( \nУже чиним!", parse_mode="MarkdownV2")
-            bot.send_message(bot.main_admin, f"Error : ```{res.status_code}```\n\n```{res.text}```\n\n```{res.json()}```", parse_mode="MarkdownV2")
             return
-        bot.send_message(message.chat.id, f"\n{json.dumps(res.json(), indent=2, ensure_ascii=False)}\n")#, parse_mode="MarkdownV2")
+        res = requests.get("https://shauru.pythonanywhere.com/get")
+        if res.status_code != 200:  
+            bot.send_message(message.chat.id, f"Ошибка :( \nУже чиним!")
+            bot.send_message(bot.main_admin, f"Error : ```\n{res.status_code}\n```\n```json\n{res.text}\n```\n", parse_mode="MarkdownV2")
+            return
+        bot.send_message(message.chat.id, f"\n```json\n{json.dumps(res.json(), indent=2, ensure_ascii=False)}\n```\n", parse_mode="MarkdownV2")
 
     @bot.message_handler(commands=["add_user"])
     def add_user(message : types.Message):
@@ -108,7 +110,16 @@ def main(args : list):
     bot.remove_webhook()
     logger.success("Bot : start")
     bot.send_message(bot.main_admin, "Bot : start")
-    bot.polling(non_stop=True)
+    while True:
+        try:
+            bot.polling(non_stop=True)
+            if STOPPED_MESSAGE is not None:
+                break
+        except KeyboardInterrupt:
+            break
+        except:
+            sleep(1)
+
     logger.warning(f"Bot : stop by telegram : {STOPPED_MESSAGE.chat.id}|{STOPPED_MESSAGE.from_user.username}")
     bot.send_message(bot.main_admin, f"Bot : stop by telegram : {STOPPED_MESSAGE.chat.id}|{STOPPED_MESSAGE.from_user.username}")
     logger.success(f"Bot : stop")
