@@ -62,11 +62,11 @@ def main(args : list):
             bot.register_next_step_handler(msg, register_user)
             return
         name, prof = args
-        prof = "phis" if prof == "физ" else "inf"
         if prof not in ["физ", "инф"] or not name:
             msg = bot.send_message(message.chat.id, "Профиль должен быть 'физ' или 'инф'. Напиши своё имя и профиль ещё раз.")
             bot.register_next_step_handler(msg, register_user)
             return
+        prof = "phis" if prof == "физ" else "inf"
         requests.post(f"https://shauru.pythonanywhere.com/add", json={"id": message.from_user.id,"name": name, "prof": prof})
         logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         logger.info(f"new user: {name=}, {prof=}")
