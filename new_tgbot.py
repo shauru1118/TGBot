@@ -1,3 +1,4 @@
+from math import inf
 from telebot import types
 from loguru import logger
 import os, sys
@@ -22,12 +23,7 @@ def greeting(name : str) -> str:
     return f"""
 
 Привет, {name}! Я бот с домашними заданиями. 
-Пора зарегистрироваться! Напиши своё имя и профиль ('физ' или 'инф'), например:
-
-Иван Иванов 
-физ
-
-Жду твои данные!
+Пора зарегистрироваться! Какой твой профиль?
 
 """
 
@@ -52,25 +48,53 @@ def main(args : list):
     @bot.message_handler(commands=["start"])
     def start(message : types.Message):
         logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
-        msg = bot.send_message(message.chat.id, greeting(message.from_user.first_name))
-        bot.register_next_step_handler(msg, register_user)
+        res = requests.get("https://shauru.pythonanywhere.com/api/get-users")
+        if res.status_code != 200:
+            bot.send_message(message.chat.id, f"Ошибка :( \nУже чиним!")
+            bot.send_message(bot.main_admin, f"Error : ```\n{res.status_code}\n```\n```json\n{res.text}\n```\n", parse_mode="MarkdownV2")
+            return
+        users = res.json()
+        if message.from_user.id in users or str(message.from_user.id) in users:
+            bot.send_message(message.chat.id, "Вы уже зарегистрированы в боте!\nИспользуйте команду /help")
+            return
+        
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        phis_button = types.InlineKeyboardButton(text="Физика", callback_data="1")
+        inf_button = types.InlineKeyboardButton(text="Информатика", callback_data="0")
+        markup.add(phis_button, inf_button)
+        bot.send_message(message.chat.id, greeting(message.from_user.first_name), reply_markup=markup)
+    
+    # register callback data
+    @bot.callback_query_handler(func=lambda call: call.data in ["1", "0"])
+    def register(call : types.CallbackQuery):
+        logger.info(f"message: {call.from_user.id}|{call.from_user.username} : {call.data}")
+        requests.post(f"https://shauru.pythonanywhere.com/api/add-user", json={"id": call.from_user.id, "prof": call.data})
+        bot.answer_callback_query(callback_query_id=call.id, text="Вы успешно зарегистрировались в боте!")
+        bot.delete_message(call.message.chat.id, call.message.message_id)
+        
+        bot.send_message(call.message.chat.id, "Успешная регистрация!\nИспользуйте команду /help")
 
-    def register_user(message : types.Message) -> None:
-        args = list(map(lambda x: x.lower(), message.text.split("\n")))
-        if len(args) != 2:
-            msg = bot.send_message(message.chat.id, "Ошибка! Напиши своё имя и профиль ещё раз.")
-            bot.register_next_step_handler(msg, register_user)
-            return
-        name, prof = args
-        if prof not in ["физ", "инф"] or not name:
-            msg = bot.send_message(message.chat.id, "Профиль должен быть 'физ' или 'инф'. Напиши своё имя и профиль ещё раз.")
-            bot.register_next_step_handler(msg, register_user)
-            return
-        prof = "phis" if prof == "физ" else "inf"
-        requests.post(f"https://shauru.pythonanywhere.com/add", json={"id": message.from_user.id,"name": name, "prof": prof})
+    @bot.message_handler(commands=["help"])
+    def help(message : types.Message):
         logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
-        logger.info(f"new user: {name=}, {prof=}")
-        bot.send_message(message.chat.id, "Вы успешно зарегистрировались в боте!")
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        button = types.InlineKeyboardButton(text="Веб-приложение", web_app=types.WebAppInfo(url="https://shauru.pythonanywhere.com/"))
+        markup.add(button)
+        bot.send_message(message.chat.id, "Используйте Web-приложение для просмотра домашних заданий!"+
+                        "\nЕсли есть вопросы или проблемы обращайтесь в поддержку /support",
+                        reply_markup=markup)
+        
+
+    @bot.message_handler(commands=["support"])
+    def support(message : types.Message):
+        logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
+        msg = bot.send_message(message.chat.id, "Опишите вашу проблему или вопрос, и мы ответим в ближайшее время!")
+        bot.register_next_step_handler(msg, support_handler)
+
+    def support_handler(message : types.Message):
+        logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
+        bot.send_message(message.chat.id, "Спасибо за обращение в поддержку! В скором времени мы ответим на ваш вопрос!")
+        bot.send_message(bot.main_admin, f"SUPPORT\n\nПользователь @{message.from_user.username} :\n\n{message.text}")
 
     @bot.message_handler(commands=["q"])
     def q(message: types.Message):
@@ -86,7 +110,7 @@ def main(args : list):
         if message.from_user.id != bot.main_admin:
             bot.send_message(message.chat.id, "not allowed")
             return
-        res = requests.get("https://shauru.pythonanywhere.com/get")
+        res = requests.get("https://shauru.pythonanywhere.com/api/get-users")
         if res.status_code != 200:  
             bot.send_message(message.chat.id, f"Ошибка :( \nУже чиним!")
             bot.send_message(bot.main_admin, f"Error : ```\n{res.status_code}\n```\n```json\n{res.text}\n```\n", parse_mode="MarkdownV2")
@@ -99,7 +123,7 @@ def main(args : list):
         if message.from_user.id != bot.main_admin:
             bot.send_message(message.chat.id, "not allowed")
         name, prof = message.text.split(" ")[1:]
-        res = requests.post(f"https://shauru.pythonanywhere.com/add?name={name}&prof={prof}")
+        res = requests.post(f"https://shauru.pythonanywhere.com/api/add-user", json={"id": message.from_user.id, "prof": prof})
         bot.send_message(message.chat.id, f"```json\n{json.dumps(res.json(), indent=2, ensure_ascii=False)}\n```", parse_mode="MarkdownV2")
 
     @bot.message_handler(content_types=["text"])
