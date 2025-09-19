@@ -49,7 +49,7 @@ def main(args : list):
             try:
                 if message.chat.id < 0 and message.content_type != "bot_command":
                     continue 
-                logger.info(f"{message.from_user.first_name}_{message.from_user.last_name} ({message.from_user.username}): {message.text}")
+                logger.info(f"{message.from_user.first_name}_{message.from_user.last_name} (@{message.from_user.username}): {message.text}")
             except Exception as e:
                 logger.error(f"Error with message: {message} \n{e}")
     bot.set_update_listener(log_all)
@@ -144,8 +144,8 @@ def main(args : list):
         except:
             sleep(1)
 
-    logger.warning(f"Bot : stop by telegram : {STOPPED_MESSAGE.chat.id}|{STOPPED_MESSAGE.from_user.username}")
-    bot.send_message(bot.main_admin, f"Bot : stop by telegram : {STOPPED_MESSAGE.chat.id}|{STOPPED_MESSAGE.from_user.username}")
+    logger.warning(f"Bot : stop by telegram : {STOPPED_MESSAGE.chat.id}|@{STOPPED_MESSAGE.from_user.username}")
+    bot.send_message(bot.main_admin, f"Bot : stop by telegram : {STOPPED_MESSAGE.chat.id}|@{STOPPED_MESSAGE.from_user.username}")
     logger.success(f"Bot : stop")
 
 if __name__ == "__main__":
