@@ -64,7 +64,8 @@ def main(args : list):
             return
         users = res.json()
         if message.from_user.id in users or str(message.from_user.id) in users:
-            bot.send_message(message.chat.id, "Вы уже зарегистрированы в боте!\nИспользуйте команду /help")
+            bot.send_message(message.chat.id, "Вы уже зарегистрированы в боте!")
+            help(message)
             return
         
         markup = InlineKeyboardMarkup(row_width=1)
