@@ -1,6 +1,6 @@
 from math import inf
-from telebot import types
-from loguru import logger
+from telebot.types import Message
+from loguru import Message, logger
 import os, sys
 from time import sleep
 from tgbot import TgBot
@@ -14,7 +14,7 @@ TOKEN = str(os.getenv("TOKEN"))
 MAIN_ADMIN = int(str(os.getenv("ADMIN")))
 ADMINS = [MAIN_ADMIN, ]
 LOGGER_FILE = "logs/tgbot.log"
-STOPPED_MESSAGE: types.Message | None = None
+STOPPED_MESSAGE: Message | None = None
 PHIS_MATH = "phis"
 INFO_MATH = "inf"
 
@@ -43,10 +43,20 @@ def main(args : list):
 
     bot = TgBot(TOKEN, MAIN_ADMIN, ADMINS)
     logger.success(f"new bot : TgBot - {bot=}")
+    
+    def log_all(messages: list[Message]):
+        for message in messages:
+            try:
+                if message.chat.id < 0 and message.content_type != "bot_command":
+                    continue 
+                logger.info(f"{message.from_user.first_name}_{message.from_user.last_name} ({message.from_user.username}): {message.text}")
+            except Exception as e:
+                logger.error(f"Error with message: {message} \n{e}")
+    bot.set_update_listener(log_all)
 
 
     @bot.message_handler(commands=["start"])
-    def start(message : types.Message):
+    def start(message : Message):
         logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         res = requests.get("https://shauru.pythonanywhere.com/api/get-users")
         if res.status_code != 200:
@@ -71,11 +81,11 @@ def main(args : list):
         requests.post(f"https://shauru.pythonanywhere.com/api/add-user", json={"id": call.from_user.id, "prof": call.data})
         bot.answer_callback_query(callback_query_id=call.id, text="Вы успешно зарегистрировались в боте!")
         bot.delete_message(call.message.chat.id, call.message.message_id)
+        help(call.message)
         
-        bot.send_message(call.message.chat.id, "Успешная регистрация!\nИспользуйте команду /help")
 
     @bot.message_handler(commands=["help"])
-    def help(message : types.Message):
+    def help(message : Message):
         logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         markup = types.InlineKeyboardMarkup(row_width=1)
         button = types.InlineKeyboardButton(text="Веб-приложение", web_app=types.WebAppInfo(url="https://shauru.pythonanywhere.com/"))
@@ -86,18 +96,18 @@ def main(args : list):
         
 
     @bot.message_handler(commands=["support"])
-    def support(message : types.Message):
+    def support(message : Message):
         logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         msg = bot.send_message(message.chat.id, "Опишите вашу проблему или вопрос, и мы ответим в ближайшее время!")
         bot.register_next_step_handler(msg, support_handler)
 
-    def support_handler(message : types.Message):
+    def support_handler(message : Message):
         logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         bot.send_message(message.chat.id, "Спасибо за обращение в поддержку! В скором времени мы ответим на ваш вопрос!")
         bot.send_message(bot.main_admin, f"SUPPORT\n\nПользователь @{message.from_user.username} :\n\n{message.text}")
 
     @bot.message_handler(commands=["q"])
-    def q(message: types.Message):
+    def q(message: Message):
         logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         bot.send_message(bot.main_admin, "Bot : stop")
         global STOPPED_MESSAGE
@@ -105,7 +115,7 @@ def main(args : list):
         bot.stop_polling()
 
     @bot.message_handler(commands=["get_users"])
-    def get_users(message : types.Message):
+    def get_users(message : Message):
         logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         if message.from_user.id != bot.main_admin:
             bot.send_message(message.chat.id, "not allowed")
@@ -118,7 +128,7 @@ def main(args : list):
         bot.send_message(message.chat.id, f"\n```json\n{json.dumps(res.json(), indent=2, ensure_ascii=False)}\n```\n", parse_mode="MarkdownV2")
 
     @bot.message_handler(commands=["add_user"])
-    def add_user(message : types.Message):
+    def add_user(message : Message):
         logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         if message.from_user.id != bot.main_admin:
             bot.send_message(message.chat.id, "not allowed")
@@ -127,7 +137,7 @@ def main(args : list):
         bot.send_message(message.chat.id, f"```json\n{json.dumps(res.json(), indent=2, ensure_ascii=False)}\n```", parse_mode="MarkdownV2")
 
     @bot.message_handler(content_types=["text"])
-    def echo(message: types.Message):
+    def echo(message: Message):
         logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
 
     global STOPPED_MESSAGE
