@@ -1,6 +1,6 @@
 from math import inf
-from telebot.types import Message
-from loguru import Message, logger
+from telebot.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, WebAppInfo
+from loguru import logger
 import os, sys
 from time import sleep
 from tgbot import TgBot
@@ -68,27 +68,27 @@ def main(args : list):
             bot.send_message(message.chat.id, "Вы уже зарегистрированы в боте!\nИспользуйте команду /help")
             return
         
-        markup = types.InlineKeyboardMarkup(row_width=1)
-        phis_button = types.InlineKeyboardButton(text="Физика", callback_data="1")
-        inf_button = types.InlineKeyboardButton(text="Информатика", callback_data="0")
+        markup = InlineKeyboardMarkup(row_width=1)
+        phis_button = InlineKeyboardButton(text="Физика", callback_data="1")
+        inf_button = InlineKeyboardButton(text="Информатика", callback_data="0")
         markup.add(phis_button, inf_button)
         bot.send_message(message.chat.id, greeting(message.from_user.first_name), reply_markup=markup)
     
     # register callback data
     @bot.callback_query_handler(func=lambda call: call.data in ["1", "0"])
-    def register(call : types.CallbackQuery):
+    def register(call : CallbackQuery):
         logger.info(f"message: {call.from_user.id}|{call.from_user.username} : {call.data}")
         requests.post(f"https://shauru.pythonanywhere.com/api/add-user", json={"id": call.from_user.id, "prof": call.data})
         bot.answer_callback_query(callback_query_id=call.id, text="Вы успешно зарегистрировались в боте!")
         bot.delete_message(call.message.chat.id, call.message.message_id)
         help(call.message)
-        
+
 
     @bot.message_handler(commands=["help"])
     def help(message : Message):
         logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
-        markup = types.InlineKeyboardMarkup(row_width=1)
-        button = types.InlineKeyboardButton(text="Веб-приложение", web_app=types.WebAppInfo(url="https://shauru.pythonanywhere.com/"))
+        markup = InlineKeyboardMarkup(row_width=1)
+        button = InlineKeyboardButton(text="Веб-приложение", web_app=WebAppInfo(url="https://shauru.pythonanywhere.com/"))
         markup.add(button)
         bot.send_message(message.chat.id, "Используйте Web-приложение для просмотра домашних заданий!"+
                         "\nЕсли есть вопросы или проблемы обращайтесь в поддержку /support",
