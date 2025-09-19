@@ -57,7 +57,6 @@ def main(args : list):
 
     @bot.message_handler(commands=["start"])
     def start(message : Message):
-        logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         res = requests.get("https://shauru.pythonanywhere.com/api/get-users")
         if res.status_code != 200:
             bot.send_message(message.chat.id, f"Ошибка :( \nУже чиним!")
@@ -77,7 +76,7 @@ def main(args : list):
     # register callback data
     @bot.callback_query_handler(func=lambda call: call.data in ["1", "0"])
     def register(call : CallbackQuery):
-        logger.info(f"message: {call.from_user.id}|{call.from_user.username} : {call.data}")
+        logger.info(f"New user: {call.from_user.id}|@{call.from_user.username}")
         requests.post(f"https://shauru.pythonanywhere.com/api/add-user", json={"id": call.from_user.id, "prof": call.data})
         bot.answer_callback_query(callback_query_id=call.id, text="Вы успешно зарегистрировались в боте!")
         bot.delete_message(call.message.chat.id, call.message.message_id)
@@ -86,7 +85,6 @@ def main(args : list):
 
     @bot.message_handler(commands=["help"])
     def help(message : Message):
-        logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         markup = InlineKeyboardMarkup(row_width=1)
         button = InlineKeyboardButton(text="Веб-приложение", web_app=WebAppInfo(url="https://shauru.pythonanywhere.com/"))
         markup.add(button)
@@ -97,18 +95,15 @@ def main(args : list):
 
     @bot.message_handler(commands=["support"])
     def support(message : Message):
-        logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         msg = bot.send_message(message.chat.id, "Опишите вашу проблему или вопрос, и мы ответим в ближайшее время!")
         bot.register_next_step_handler(msg, support_handler)
 
     def support_handler(message : Message):
-        logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         bot.send_message(message.chat.id, "Спасибо за обращение в поддержку! В скором времени мы ответим на ваш вопрос!")
         bot.send_message(bot.main_admin, f"SUPPORT\n\nПользователь @{message.from_user.username} :\n\n{message.text}")
 
     @bot.message_handler(commands=["q"])
     def q(message: Message):
-        logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         bot.send_message(bot.main_admin, "Bot : stop")
         global STOPPED_MESSAGE
         STOPPED_MESSAGE = message
@@ -116,7 +111,6 @@ def main(args : list):
 
     @bot.message_handler(commands=["get_users"])
     def get_users(message : Message):
-        logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         if message.from_user.id != bot.main_admin:
             bot.send_message(message.chat.id, "not allowed")
             return
@@ -129,16 +123,11 @@ def main(args : list):
 
     @bot.message_handler(commands=["add_user"])
     def add_user(message : Message):
-        logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
         if message.from_user.id != bot.main_admin:
             bot.send_message(message.chat.id, "not allowed")
         name, prof = message.text.split(" ")[1:]
         res = requests.post(f"https://shauru.pythonanywhere.com/api/add-user", json={"id": message.from_user.id, "prof": prof})
         bot.send_message(message.chat.id, f"```json\n{json.dumps(res.json(), indent=2, ensure_ascii=False)}\n```", parse_mode="MarkdownV2")
-
-    @bot.message_handler(content_types=["text"])
-    def echo(message: Message):
-        logger.info(f"message: {message.chat.id}|{message.from_user.username} : {message.text}")
 
     global STOPPED_MESSAGE
 
