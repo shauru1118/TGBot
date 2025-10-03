@@ -54,7 +54,8 @@ def main(args : list):
                 logger.error(f"Error with message: {message} \n{e}")
     bot.set_update_listener(log_all)
 
-
+    def pars(d: dict) -> str:
+        return f"{json.dumps(d, indent=2)}"
     @bot.message_handler(commands=["start"])
     def start(message : Message):
         res = requests.get("https://shauru.pythonanywhere.com/api/get-users")
@@ -144,8 +145,9 @@ def main(args : list):
             "sj":sj,
             "hw":hw,
         }
-        res = requests.post("https://shauru.pythonanywhere.com/api/add-hw", json=data)
-        bot.send_message(message.chat.id, f"{json.dumps(res.json(), indent=2)}")
+        bot.send_message(message.chat.id, f"```json\n{pars(data)}\n```", parse_mode="MarkdownV2")
+        res = requests.post("https://shauru.pythonanywhere.com/api/add-dz", json=data)
+        bot.send_message(message.chat.id, f"```json\n{pars(res.json())}\n```", parse_mode="MarkdownV2")
     
     global STOPPED_MESSAGE
 
