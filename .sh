@@ -19,7 +19,7 @@ echo =
 
 echo ================
 echo Docker : DOING
-sudo docker build . -t shauru1118/new-tgbot
+sudo docker build . -t shauru1118/new-tgbot:latest
 echo =
 echo Docker : build DONE
 echo =
