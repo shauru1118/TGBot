@@ -148,6 +148,8 @@ def main(args : list):
         bot.send_message(message.chat.id, f"```json\n{pars(data)}\n```", parse_mode="MarkdownV2")
         res = requests.post("https://shauru.pythonanywhere.com/api/add-dz", json=data)
         bot.send_message(message.chat.id, f"```json\n{pars(res.json())}\n```", parse_mode="MarkdownV2")
+        bot.send_message(message.chat.id, "всё хорошо")
+        
     
     global STOPPED_MESSAGE
 
