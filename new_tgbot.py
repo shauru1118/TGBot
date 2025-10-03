@@ -129,7 +129,24 @@ def main(args : list):
         name, prof = message.text.split(" ")[1:]
         res = requests.post(f"https://shauru.pythonanywhere.com/api/add-user", json={"id": message.from_user.id, "prof": prof})
         bot.send_message(message.chat.id, f"```json\n{json.dumps(res.json(), indent=2, ensure_ascii=False)}\n```", parse_mode="MarkdownV2")
-
+    
+    @bot.message_handler(commands=["add_hw"])
+    def add_hw(message: Message):
+        if message.from_user.id not in ADMINS:
+            return
+        msg = bot.send_message(message.chat.id, "Пришли дз в формате: \n\nДата\nПредмет\nДз")
+        bot.register_next_step_handler(msg, add_hw_handler)
+    
+    def add_hw_handler(message: Message):
+        date, sj, hw = message.text.split("\n")
+        data = {
+            "date":date,
+            "sj":sj,
+            "hw":hw,
+        }
+        res = requests.post("https://shauru.pythonanywhere.com/api/add-hw", json=data)
+        bot.send_message(message.chat.id, f"{json.dumps(res.json(), indent=2)}")
+    
     global STOPPED_MESSAGE
 
     bot.remove_webhook()
