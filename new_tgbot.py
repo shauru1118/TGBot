@@ -1,4 +1,3 @@
-from math import inf
 from telebot.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, WebAppInfo
 from loguru import logger
 import os, sys
