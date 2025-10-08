@@ -11,7 +11,10 @@ import json
 load_dotenv()
 TOKEN = str(os.getenv("TOKEN"))
 MAIN_ADMIN = int(str(os.getenv("ADMIN")))
-ADMINS = [MAIN_ADMIN, ]
+NICKOLAY_ADMIN = 1853452025
+DANYA_ADMIN = 5207969556
+VANYA_ADMIN = 1301873508
+ADMINS = [MAIN_ADMIN, NICKOLAY_ADMIN, DANYA_ADMIN, VANYA_ADMIN]
 LOGGER_FILE = "logs/tgbot.log"
 STOPPED_MESSAGE: Message | None = None
 PHIS_MATH = "phis"
@@ -54,7 +57,7 @@ def main(args : list):
     bot.set_update_listener(log_all)
 
     def pars(d: dict) -> str:
-        return f"{json.dumps(d, indent=2)}"
+        return json.dumps(d, indent=2, ensure_ascii=False)
     @bot.message_handler(commands=["start"])
     def start(message : Message):
         res = requests.get("https://shauru.pythonanywhere.com/api/get-users")
@@ -133,6 +136,7 @@ def main(args : list):
     @bot.message_handler(commands=["add_hw"])
     def add_hw(message: Message):
         if message.from_user.id not in ADMINS:
+            bot.send_message(message.chat.id, "Обратитесь к админу для добавления дз!")
             return
         msg = bot.send_message(message.chat.id, "Пришли дз в формате: \n\nДата\nПредмет\nДз")
         bot.register_next_step_handler(msg, add_hw_handler)
@@ -148,7 +152,15 @@ def main(args : list):
         res = requests.post("https://shauru.pythonanywhere.com/api/add-dz", json=data)
         bot.send_message(message.chat.id, f"```json\n{pars(res.json())}\n```", parse_mode="MarkdownV2")
         bot.send_message(message.chat.id, "всё хорошо")
-        
+        return
+    
+    @bot.message_handler(commands=["clear"])
+    def clear_hw(message: Message):
+        date = message.text.split(" ")[1]
+        res = requests.post("https://shauru.pythonanywhere.com/api/clean", json={"date":date})
+        bot.send_message(message.chat.id, f"```json\n{pars(res.json())}\n```", parse_mode="MarkdownV2")
+        return
+    
     
     global STOPPED_MESSAGE
 
